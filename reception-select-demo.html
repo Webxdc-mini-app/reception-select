@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Visitor Call</title>
+<style>
+:root{--bg:#f3f6f4;--fg:#14281f;--sub:#5b6e65;--accent:#0f7a55;--accent-d:#0a5a3e;--warn:#b4531a;--card:#fff;--line:#d5ded9}
+@media (prefers-color-scheme:dark){:root{--bg:#10201a;--fg:#e8f1ec;--sub:#9db0a6;--accent:#2fb386;--accent-d:#1f8a66;--warn:#e08a52;--card:#183026;--line:#2a4538}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:"Hiragino Sans","Noto Sans","Noto Sans JP","Noto Sans Arabic","Noto Sans Devanagari","Noto Sans Ethiopic","Yu Gothic",sans-serif;display:flex;flex-direction:column}
+header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line)}
+header h1{font-size:1rem;margin:0}
+.hr{display:flex;gap:6px;align-items:center}
+#lang,#modeBtn{background:var(--card);border:1px solid var(--line);color:var(--sub);border-radius:8px;padding:6px 8px;font-size:.8rem;max-width:150px}
+main{flex:1;min-height:0;display:flex;flex-direction:column}
+.hidden{display:none!important}
+#reception{flex:1;overflow:auto;padding:20px;text-align:center}
+#reception h2{font-size:clamp(1.3rem,5vw,2rem);margin:6px 0 16px}
+#grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));max-width:760px;margin:0 auto}
+.staffBtn{min-height:110px;border:none;border-radius:18px;background:var(--accent);color:#fff;font-size:clamp(1.2rem,4.5vw,1.8rem);font-weight:800;box-shadow:0 6px 0 var(--accent-d);padding:10px;word-break:break-word}
+.staffBtn:active{transform:translateY(5px);box-shadow:0 1px 0 var(--accent-d)}
+#allBtn{display:block;margin:22px auto 0;width:100%;max-width:760px;min-height:76px;border:3px solid var(--accent);border-radius:18px;background:transparent;color:var(--accent);font-size:clamp(1.1rem,4vw,1.5rem);font-weight:800}
+#form{max-width:560px;margin:10px auto 0;text-align:start}#toLabel{font-size:clamp(1.2rem,4.5vw,1.7rem);font-weight:800;color:var(--accent);text-align:center;margin-bottom:14px}#form label{display:block;font-weight:700;margin-bottom:6px}#vname{width:100%;font-size:1.4rem;padding:16px;border:3px solid var(--accent);border-radius:14px;background:var(--card);color:var(--fg)}#form .row{display:flex;gap:12px;margin-top:16px}#form .row button{flex:1;min-height:72px;border-radius:16px;font-size:1.3rem;font-weight:800;border:none}#backBtn{background:transparent;border:3px solid var(--line)!important;color:var(--sub)}#goBtn{background:var(--accent);color:#fff;box-shadow:0 5px 0 var(--accent-d)}
+#msg{margin-top:20px;font-size:clamp(1.1rem,4.5vw,1.8rem);font-weight:700;min-height:3.2em;white-space:pre-line}
+#msg.done{color:var(--accent)}#msg.err{color:var(--warn)}
+#staff{flex:1;overflow:auto;padding:12px 16px}
+.reg{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.reg .s{font-size:.85rem;color:var(--sub)}
+.reg button{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 14px;font-weight:700}
+.reg button.off{background:transparent;color:var(--sub);border:1px solid var(--line)}
+#staff h2{font-size:.95rem;margin:4px 0 10px;color:var(--sub)}
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.item.open{border:2px solid var(--warn)}.item.mine{border:3px solid var(--accent)}
+.item .t{font-size:1.2rem;font-weight:800}.item .v{font-weight:700;margin-top:2px}
+.item .s{font-size:.85rem;color:var(--sub);margin-top:2px;white-space:pre-line}
+.item button{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px 16px;font-size:1rem;font-weight:700}
+.empty{color:var(--sub);text-align:center;padding:30px 0}
+.chime{margin:18px 0;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--card)}.crow{display:flex;align-items:center;gap:10px;margin:10px 0}.crow label{min-width:5em;color:var(--sub);font-size:.85rem}.crow select{flex:1;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg)}.crow input{flex:1}#chTest{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-weight:700}
+#noStaff{margin-top:18px;color:var(--warn);font-weight:700;font-size:.95rem}#ver{text-align:center;color:var(--sub);font-size:.7rem;margin-top:8px}
+.pwrow{margin:18px 0 6px;text-align:center}#pwChange{background:none;border:1px solid var(--line);color:var(--sub);border-radius:8px;padding:8px 12px;font-size:.8rem}#pwNote{display:block;color:var(--accent);font-size:.8rem;margin-top:6px}
+#pw{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:10;padding:20px}#pw .box{background:var(--card);border-radius:16px;padding:20px;width:100%;max-width:420px}#pwTitle{font-weight:800;margin-bottom:12px}#pwIn{width:100%;font-size:1.3rem;padding:12px;border:3px solid var(--accent);border-radius:12px;background:var(--card);color:var(--fg)}#pwErr{color:var(--warn);font-weight:700;min-height:1.6em;margin-top:6px}#pw .row{display:flex;gap:10px;margin-top:8px}#pw .row button{flex:1;min-height:54px;border-radius:12px;font-size:1.1rem;font-weight:800;border:none;background:var(--accent);color:#fff}#pwCancel{background:transparent!important;border:2px solid var(--line)!important;color:var(--sub)!important}
+</style>
+</head>
+<body>
+<header><h1 id="appTitle"></h1><div class="hr"><select id="lang" aria-label="Language"></select><button id="modeBtn" type="button"></button></div></header>
+<main>
+  <section id="reception" class="hidden">
+    <h2 id="pickTitle"></h2>
+    <div id="pick"><div id="grid"></div><button id="allBtn" type="button"></button><div id="noStaff" class="hidden"></div></div>
+    <div id="form" class="hidden"><div id="toLabel"></div><label for="vname" id="lb"></label><input id="vname" maxlength="30" autocomplete="off" placeholder="ABC Inc. / Tanaka"><div class="row"><button id="backBtn" type="button"></button><button id="goBtn" type="button"></button></div></div>
+    <div id="msg" aria-live="polite"></div>
+  </section>
+  <section id="staff" class="hidden">
+    <div class="reg"><div><b id="regTitle"></b><div class="s" id="regState"></div><div class="s" id="regList"></div></div><button id="regBtn" type="button"></button></div>
+    <h2 id="hist"></h2>
+    <div id="list"></div>
+    <div class="chime"><b id="chTitle"></b><div class="crow"><label for="chType" id="chTypeL"></label><select id="chType"></select></div><div class="crow"><label for="chVol" id="chVolL"></label><input id="chVol" type="range" min="0" max="1" step="0.05"></div><button id="chTest" type="button"></button></div>
+    <div class="pwrow"><button id="pwChange" type="button"></button><span id="pwNote"></span></div>
+    <div id="ver"></div>
+  </section>
+</main>
+<div id="pw" class="hidden"><div class="box"><div id="pwTitle"></div><input id="pwIn" type="password" autocomplete="off"><div id="pwErr"></div><div class="row"><button id="pwCancel" type="button"></button><button id="pwOk" type="button"></button></div></div></div>
+<script>
+/* ブラウザデモ用 webxdc モック: 同一ブラウザの複数タブ間で更新を共有します */
+(function(){
+  var KEY="webxdc_demo_updates", ch=null, listener=null, lastSerial=0;
+  try{ch=new BroadcastChannel("webxdc_demo")}catch(e){}
+  var mem=[];
+  function load(){try{return JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){return mem}}
+  function save(a){mem=a;try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}}
+  var id;try{id=sessionStorage.getItem("demo_id");if(!id){id=Math.random().toString(36).slice(2,6);sessionStorage.setItem("demo_id",id)}}catch(e){id=Math.random().toString(36).slice(2,6)}
+  function deliver(){
+    if(!listener)return;
+    var a=load();
+    while(lastSerial<a.length){var u=a[lastSerial];lastSerial++;
+      listener({payload:u.payload,serial:lastSerial,max_serial:a.length,info:u.info})}
+  }
+  window.webxdc={
+    selfAddr:"demo-"+id+"@example.invalid",
+    selfName:"Staff-"+id.toUpperCase(),
+    sendUpdate:function(up){
+      var a=load();a.push({payload:up.payload,info:up.info});save(a);
+      if(ch)ch.postMessage(1);
+      deliver();
+    },
+    setUpdateListener:function(cb,serial){
+      listener=cb;lastSerial=serial||0;deliver();
+      return Promise.resolve();
+    }
+  };
+  if(ch)ch.onmessage=deliver;
+  window.addEventListener("storage",function(e){if(e.key===KEY)deliver()});
+})();
+</script>
+<script>
+var KEYS="appTitle title anyone toWho allStaff person vlabel back call sent cooldown err claimed toStaff pwPrompt pwWrong cancel ok toRecep reg regOn regOff regBtnOn regBtnOff hist none visit toYou visitor claimedBy forAll forP open esc hint claim nYou nAll nCall nEsc".split(" ");
+var NAMES={ar:"العربية",de:"Deutsch",en:"English",es:"Español",fil:"Filipino",fr:"Français",id:"Bahasa Indonesia",ja:"日本語",ko:"한국어",ne:"नेपाली",pt:"Português",ru:"Русский",ti:"ትግርኛ",vi:"Tiếng Việt",zh:"中文"};
+var ADM={
+ja:{confirmRecep:"この端末を「受付端末」にしますか？",pwChange:"この端末の切替パスワードを変更",pwCur:"現在のパスワードを入力してください",pwNew:"新しいパスワードを入力してください（4文字以上）",pwShort:"4文字以上で入力してください",pwChanged:"パスワードを変更しました",chime:"呼び鈴の設定",chType:"音の種類",chVol:"音量",chTest:"試聴",ct_pingpong:"ピンポーン",ct_double:"ピンポンピンポーン（2回）",ct_chime:"チャイム（4音）",ct_bell:"ベル",ct_soft:"やわらかい音",ct_off:"鳴らさない",noStaff:"担当者が登録されていません。スタッフが、このアプリ（最新のカード）を開いて「登録する」を押してください。",regList:"登録者"},
+en:{confirmRecep:"Use this device as the reception terminal?",pwChange:"Change this device's switch password",pwCur:"Enter the current password",pwNew:"Enter a new password (4+ characters)",pwShort:"Use at least 4 characters",pwChanged:"Password changed",chime:"Doorbell sound",chType:"Sound",chVol:"Volume",chTest:"Test",ct_pingpong:"Ding-dong",ct_double:"Ding-dong ×2",ct_chime:"Chime (4 notes)",ct_bell:"Bell",ct_soft:"Soft",ct_off:"Off",noStaff:"No staff registered. Staff must open this app (the latest card) and tap Register.",regList:"Registered"}};
+var L={
+ja:["来客呼出し","お会いになる方を選んでください","担当者がわからない／どなたでも","{who}を呼び出します","スタッフ全員","{n}さん","会社名またはお名前","戻る","呼び出す","{who}をお呼びしました。\nそのままお待ちください。","すでにお呼びしています。\nしばらくお待ちください。","送信できませんでした。\nお近くのスタッフにお声がけください。","{n}さんが対応します。\n通話の着信が来たら「応答」を押してください。","スタッフ表示へ","スタッフ表示に切り替えるには、パスワードを入力してください","パスワードが違います","キャンセル","OK","受付端末にする","担当者として登録","登録済み（受付の選択画面に表示されます）","未登録（登録すると、受付で名前を選べます）","登録する","登録を解除","来訪の履歴","まだ来訪はありません","{t} 来訪","（あなた宛）","来訪者：{v}","{n}さんが対応中","全員宛","{n}さん宛","未対応","担当者が応答しないため全員に再通知しました","チャット一覧から「受付」を開き、Audio callで発信してください","対応します","あなた宛の来客です","受付に来客です","受付にAudio callで発信してください","{who}が応答していません。対応をお願いします"],
+en:["Visitor Call","Please choose who you are here to see","I don't know / Anyone","Calling: {who}","All staff","{n}","Company or your name","Back","Call","{who} has been called.\nPlease wait here.","Already calling.\nPlease wait a moment.","Could not send.\nPlease ask a staff member nearby.","{n} will assist you.\nWhen the call comes in, tap Answer.","Staff view","Enter the password to switch to staff view","Wrong password","Cancel","OK","Use as reception","Register as staff","Registered (shown on the reception screen)","Not registered (register to be listed at reception)","Register","Unregister","Visit history","No visits yet","{t} Visitor","(for you)","Visitor: {v}","{n} is handling this","For all staff","For {n}","Unanswered","No response from the assigned person, so all staff were notified again","Open the \"Reception\" chat from the chat list and make an Audio call","I'll take it","A visitor is here for you","A visitor is at reception","Make an Audio call to Reception","{who} has not responded. Please help."],
+de:["Besucherruf","Bitte wählen Sie, wen Sie besuchen","Ich weiß es nicht / Jemand","Es wird gerufen: {who}","Alle Mitarbeitenden","{n}","Firma oder Name","Zurück","Rufen","{who} wurde gerufen.\nBitte warten Sie hier.","Es wird bereits gerufen.\nBitte warten Sie einen Moment.","Senden fehlgeschlagen.\nBitte sprechen Sie eine Person vor Ort an.","{n} kümmert sich um Sie.\nWenn der Anruf kommt, tippen Sie auf „Annehmen“.","Mitarbeiteransicht","Passwort für die Mitarbeiteransicht eingeben","Falsches Passwort","Abbrechen","OK","Als Empfang einrichten","Als Mitarbeiter registrieren","Registriert (wird am Empfang angezeigt)","Nicht registriert (registrieren, um am Empfang gelistet zu sein)","Registrieren","Abmelden","Besucherverlauf","Noch keine Besuche","{t} Besuch","(für Sie)","Besucher: {v}","{n} kümmert sich darum","Für alle","Für {n}","Unbeantwortet","Keine Reaktion der zuständigen Person – alle wurden erneut benachrichtigt","Öffnen Sie in der Chatliste den Chat „Empfang“ und starten Sie einen Audioanruf","Ich übernehme","Ein Besucher wartet auf Sie","Ein Besucher ist am Empfang","Rufen Sie den Empfang per Audioanruf an","{who} antwortet nicht. Bitte helfen Sie."],
+es:["Llamada de visitas","Elija a quién viene a ver","No lo sé / Cualquiera","Llamando a: {who}","Todo el personal","{n}","Empresa o nombre","Atrás","Llamar","Se ha llamado a {who}.\nEspere aquí, por favor.","Ya se está llamando.\nEspere un momento.","No se pudo enviar.\nPida ayuda a alguien del personal.","{n} le atenderá.\nCuando entre la llamada, toque «Responder».","Vista del personal","Introduzca la contraseña para ver la vista del personal","Contraseña incorrecta","Cancelar","Aceptar","Usar como recepción","Registrarme como personal","Registrado (aparece en la pantalla de recepción)","No registrado (regístrese para aparecer en recepción)","Registrarme","Darme de baja","Historial de visitas","Aún no hay visitas","{t} Visita","(para usted)","Visitante: {v}","{n} lo está atendiendo","Para todos","Para {n}","Sin atender","La persona asignada no respondió; se avisó de nuevo a todos","En la lista de chats abra «Recepción» y haga una llamada de audio","Me encargo","Hay una visita para usted","Hay una visita en recepción","Llame a recepción con una llamada de audio","{who} no responde. Por favor, ayude."],
+fil:["Tawag sa Bisita","Piliin kung sino ang bibisitahin ninyo","Hindi ko alam / Kahit sino","Tinatawag: {who}","Lahat ng staff","{n}","Kumpanya o pangalan","Bumalik","Tawagin","Natawag na si {who}.\nMangyaring maghintay dito.","Tinatawag na.\nMaghintay sandali.","Hindi naipadala.\nMagtanong sa staff na malapit.","Aasikasuhin kayo ni {n}.\nKapag may tawag, pindutin ang \"Sagutin\".","Pagtingin ng staff","Ilagay ang password para lumipat sa pagtingin ng staff","Maling password","Kanselahin","OK","Gamitin bilang reception","Magparehistro bilang staff","Nakarehistro (lalabas sa screen ng reception)","Hindi nakarehistro (magparehistro para mailista sa reception)","Magparehistro","Alisin ang rehistro","Kasaysayan ng bisita","Wala pang bisita","{t} Bisita","(para sa iyo)","Bisita: {v}","Inaasikaso ni {n}","Para sa lahat","Para kay {n}","Hindi pa nasasagot","Walang sagot ang itinalaga, kaya inabisuhan muli ang lahat","Buksan ang chat na \"Reception\" sa listahan ng chat at gumawa ng Audio call","Ako na ang bahala","May bisita para sa iyo","May bisita sa reception","Mag-Audio call sa Reception","Hindi sumasagot si {who}. Pakitulungan po."],
+fr:["Appel visiteur","Choisissez la personne que vous venez voir","Je ne sais pas / N'importe qui","Appel en cours : {who}","Tout le personnel","{n}","Société ou nom","Retour","Appeler","{who} a été appelé(e).\nVeuillez patienter ici.","Appel déjà en cours.\nVeuillez patienter un instant.","Envoi impossible.\nVeuillez vous adresser à une personne à proximité.","{n} va s'occuper de vous.\nQuand l'appel arrive, appuyez sur « Répondre ».","Vue du personnel","Saisissez le mot de passe pour passer à la vue du personnel","Mot de passe incorrect","Annuler","OK","Utiliser comme accueil","M'inscrire comme personnel","Inscrit (affiché sur l'écran d'accueil)","Non inscrit (inscrivez-vous pour apparaître à l'accueil)","M'inscrire","Me désinscrire","Historique des visites","Aucune visite pour l'instant","{t} Visite","(pour vous)","Visiteur : {v}","{n} s'en occupe","Pour tous","Pour {n}","Sans réponse","La personne désignée n'a pas répondu ; tout le monde a été prévenu à nouveau","Dans la liste des discussions, ouvrez « Accueil » et lancez un appel audio","Je m'en occupe","Un visiteur vous attend","Un visiteur est à l'accueil","Appelez l'accueil par appel audio","{who} ne répond pas. Merci de votre aide."],
+id:["Panggilan Tamu","Pilih siapa yang ingin Anda temui","Tidak tahu / Siapa saja","Memanggil: {who}","Semua staf","{n}","Perusahaan atau nama","Kembali","Panggil","{who} sudah dipanggil.\nMohon tunggu di sini.","Sedang dipanggil.\nMohon tunggu sebentar.","Gagal terkirim.\nMohon minta bantuan staf di dekat Anda.","{n} akan melayani Anda.\nSaat panggilan masuk, ketuk \"Jawab\".","Tampilan staf","Masukkan kata sandi untuk beralih ke tampilan staf","Kata sandi salah","Batal","OK","Gunakan sebagai resepsionis","Daftar sebagai staf","Terdaftar (tampil di layar resepsionis)","Belum terdaftar (daftar agar muncul di resepsionis)","Daftar","Batalkan pendaftaran","Riwayat tamu","Belum ada tamu","{t} Tamu","(untuk Anda)","Tamu: {v}","Ditangani oleh {n}","Untuk semua","Untuk {n}","Belum ditangani","Orang yang ditunjuk tidak merespons, jadi semua staf diberi tahu lagi","Buka obrolan \"Resepsionis\" di daftar obrolan lalu lakukan Audio call","Saya tangani","Ada tamu untuk Anda","Ada tamu di resepsionis","Lakukan Audio call ke resepsionis","{who} belum merespons. Mohon bantuannya."],
+ko:["방문객 호출","만나실 분을 선택해 주세요","잘 모르겠어요 / 아무나","호출 중: {who}","전체 직원","{n}님","회사명 또는 성함","뒤로","호출","{who} 호출했습니다.\n잠시만 기다려 주세요.","이미 호출 중입니다.\n잠시만 기다려 주세요.","전송하지 못했습니다.\n가까이 있는 직원에게 말씀해 주세요.","{n}님이 응대합니다.\n전화가 오면 '받기'를 눌러 주세요.","직원 화면","직원 화면으로 전환하려면 비밀번호를 입력하세요","비밀번호가 틀렸습니다","취소","확인","접수 단말로 사용","직원으로 등록","등록됨 (접수 화면에 표시됩니다)","미등록 (등록하면 접수 화면에서 선택할 수 있습니다)","등록","등록 해제","방문 기록","아직 방문이 없습니다","{t} 방문","(본인 앞)","방문자: {v}","{n}님이 대응 중","전체 대상","{n}님 앞","미응대","담당자가 응답하지 않아 전체에게 다시 알렸습니다","채팅 목록에서 '접수'를 열고 음성 통화(Audio call)를 거세요","제가 대응합니다","본인을 찾는 방문객이 있습니다","접수처에 방문객이 있습니다","접수에 음성 통화(Audio call)를 걸어 주세요","{who} 응답이 없습니다. 도와주세요."],
+ne:["आगन्तुक कल","तपाईं कसलाई भेट्न आउनुभएको हो, छान्नुहोस्","थाहा छैन / जो कोही","बोलाउँदै: {who}","सबै कर्मचारी","{n}","कम्पनी वा नाम","पछाडि","बोलाउनुहोस्","{who} लाई बोलाइयो।\nकृपया यहीँ पर्खनुहोस्।","पहिले नै बोलाइँदैछ।\nकृपया केही बेर पर्खनुहोस्।","पठाउन सकिएन।\nकृपया नजिकका कर्मचारीलाई भन्नुहोस्।","{n} तपाईंलाई सहयोग गर्नुहुनेछ।\nकल आएपछि \"उठाउनुहोस्\" थिच्नुहोस्।","कर्मचारी दृश्य","कर्मचारी दृश्यमा जान पासवर्ड हाल्नुहोस्","पासवर्ड मिलेन","रद्द गर्नुहोस्","ठीक छ","रिसेप्सनको रूपमा प्रयोग गर्नुहोस्","कर्मचारीको रूपमा दर्ता गर्नुहोस्","दर्ता भयो (रिसेप्सन स्क्रिनमा देखिन्छ)","दर्ता भएको छैन (दर्ता गरेपछि रिसेप्सनमा नाम देखिन्छ)","दर्ता गर्नुहोस्","दर्ता हटाउनुहोस्","आगन्तुकको इतिहास","अहिलेसम्म कुनै आगन्तुक छैन","{t} आगन्तुक","(तपाईंको लागि)","आगन्तुक: {v}","{n} ले सम्हाल्दै हुनुहुन्छ","सबैका लागि","{n} को लागि","जवाफ दिइएको छैन","तोकिएको व्यक्तिले जवाफ दिएनन्, त्यसैले सबैलाई फेरि सूचना दिइयो","च्याट सूचीबाट \"रिसेप्सन\" खोल्नुहोस् र Audio call गर्नुहोस्","म हेर्छु","तपाईंलाई भेट्न आगन्तुक आउनुभएको छ","रिसेप्सनमा आगन्तुक आउनुभएको छ","रिसेप्सनमा Audio call गर्नुहोस्","{who} ले जवाफ दिनुभएको छैन। कृपया सहयोग गर्नुहोस्।"],
+pt:["Chamada de visitantes","Escolha quem você veio visitar","Não sei / Qualquer pessoa","Chamando: {who}","Toda a equipe","{n}","Empresa ou nome","Voltar","Chamar","{who} foi chamado(a).\nAguarde aqui, por favor.","Já estamos chamando.\nAguarde um momento.","Não foi possível enviar.\nPeça ajuda a alguém da equipe por perto.","{n} vai atender você.\nQuando a chamada chegar, toque em \"Atender\".","Visão da equipe","Digite a senha para mudar para a visão da equipe","Senha incorreta","Cancelar","OK","Usar como recepção","Registrar-me como equipe","Registrado (aparece na tela da recepção)","Não registrado (registre-se para aparecer na recepção)","Registrar","Cancelar registro","Histórico de visitas","Ainda não há visitas","{t} Visita","(para você)","Visitante: {v}","{n} está atendendo","Para todos","Para {n}","Sem resposta","A pessoa designada não respondeu; todos foram avisados novamente","Na lista de conversas, abra \"Recepção\" e faça uma chamada de áudio","Eu atendo","Há um visitante para você","Há um visitante na recepção","Ligue para a recepção com uma chamada de áudio","{who} não respondeu. Por favor, ajude."],
+ru:["Вызов посетителей","Выберите, к кому вы пришли","Не знаю / Кто-нибудь","Вызываем: {who}","Все сотрудники","{n}","Компания или имя","Назад","Вызвать","Вызов отправлен: {who}.\nПожалуйста, подождите здесь.","Вызов уже идёт.\nПожалуйста, подождите.","Не удалось отправить.\nОбратитесь к сотруднику поблизости.","Вам поможет: {n}.\nКогда пойдёт звонок, нажмите «Ответить».","Вид сотрудника","Введите пароль для перехода в вид сотрудника","Неверный пароль","Отмена","ОК","Использовать как ресепшен","Зарегистрироваться как сотрудник","Зарегистрирован (отображается на экране ресепшена)","Не зарегистрирован (зарегистрируйтесь, чтобы появиться на ресепшене)","Зарегистрироваться","Отменить регистрацию","История посещений","Пока нет посетителей","{t} Посетитель","(для вас)","Посетитель: {v}","Занимается: {n}","Для всех","Для: {n}","Без ответа","Назначенный сотрудник не ответил, поэтому всем отправлено повторное уведомление","В списке чатов откройте «Ресепшен» и сделайте аудиозвонок","Беру на себя","К вам пришёл посетитель","На ресепшене посетитель","Позвоните на ресепшен (аудиозвонок)","{who} не отвечает. Пожалуйста, помогите."],
+ti:["ጻውዒት ጎብነይቲ","መን ክትርእዩ ከም ዝመጻእኩም ምረጹ","ኣይፈለጥን / ዝኾነ","ይጽዋዕ ኣሎ: {who}","ኩሎም ሰራሕተኛታት","{n}","ካምፓኒ ወይ ሽም","ተመለስ","ጸውዕ","{who} ተጸዊዑ።\nብኽብረትኩም ኣብዚ ተጸበዩ።","ድሮ ይጽዋዕ ኣሎ።\nብኽብረትኩም ቁሩብ ተጸበዩ።","ክለኣኽ ኣይተኻኣለን።\nብኽብረትኩም ንቐረባ ሰራሕተኛ ሕተቱ።","{n} ክሕግዘኩም እዩ።\nጻውዒት ምስ መጸ \"ተቐበል\" ጠውቑ።","ርእይቶ ሰራሕተኛ","ናብ ርእይቶ ሰራሕተኛ ንምስጋር ቃል ምስጢር የእትዉ","ቃል ምስጢር ጌጋ እዩ","ሰርዝ","ሕራይ","ከም ኣቀባበል ተጠቐም","ከም ሰራሕተኛ ተመዝገብ","ተመዚግቡ (ኣብ ስክሪን ኣቀባበል ይረአ)","ኣይተመዝገበን (ኣብ ኣቀባበል ንምርኣይ ተመዝገብ)","ተመዝገብ","ምዝገባ ኣልግስ","ታሪኽ ጎብነይቲ","ክሳብ ሕጂ ጎብነይ የለን","{t} ጎብነይ","(ንዓኻ)","ጎብነይ: {v}","{n} ይሕግዝ ኣሎ","ንኹሉ","ን{n}","ዘይተመለሰ","እቲ ዝተመደበ ሰብ ኣይመለሰን፣ ስለዚ ንኹሉ ዳግማይ ተሓቢሩ","ካብ ዝርዝር ዕላል \"ኣቀባበል\" ከፊትኩም ኦዲዮ ጻውዒት ግበሩ","ኣነ እሕዞ","ሓደ ጎብነይ ይደሊ ኣሎ","ኣብ ኣቀባበል ጎብነይ ኣሎ","ናብ ኣቀባበል ብኦዲዮ ጸውዑ","{who} ኣይመለሰን። ብኽብረትኩም ሓግዙ።"],
+vi:["Gọi khách","Vui lòng chọn người bạn muốn gặp","Không biết / Ai cũng được","Đang gọi: {who}","Tất cả nhân viên","{n}","Công ty hoặc tên","Quay lại","Gọi","Đã gọi {who}.\nVui lòng đợi tại đây.","Đang gọi rồi.\nVui lòng đợi một lát.","Không gửi được.\nVui lòng nhờ nhân viên gần đó.","{n} sẽ tiếp bạn.\nKhi có cuộc gọi đến, hãy nhấn \"Trả lời\".","Giao diện nhân viên","Nhập mật khẩu để chuyển sang giao diện nhân viên","Sai mật khẩu","Hủy","OK","Dùng làm lễ tân","Đăng ký làm nhân viên","Đã đăng ký (hiển thị trên màn hình lễ tân)","Chưa đăng ký (đăng ký để hiện ở lễ tân)","Đăng ký","Hủy đăng ký","Lịch sử khách đến","Chưa có khách nào","{t} Khách đến","(dành cho bạn)","Khách: {v}","{n} đang xử lý","Cho tất cả","Cho {n}","Chưa xử lý","Người được chỉ định chưa phản hồi nên đã thông báo lại cho tất cả","Mở cuộc trò chuyện \"Lễ tân\" trong danh sách và gọi Audio call","Tôi nhận","Có khách đến gặp bạn","Có khách ở quầy lễ tân","Hãy gọi Audio call cho lễ tân","{who} chưa phản hồi. Nhờ bạn hỗ trợ."],
+zh:["来访呼叫","请选择您要拜访的人","不清楚 / 任何人","正在呼叫：{who}","全体员工","{n}","公司名称或姓名","返回","呼叫","已呼叫{who}。\n请在此稍候。","正在呼叫中。\n请稍候。","发送失败。\n请联系附近的工作人员。","{n}将为您服务。\n来电时请点击“接听”。","员工视图","请输入密码以切换到员工视图","密码错误","取消","确定","设为前台终端","登记为接待人员","已登记（显示在前台画面）","未登记（登记后可在前台被选择）","登记","取消登记","来访记录","暂无来访","{t} 来访","（找您）","来访者：{v}","{n}正在处理","呼叫全体","找{n}","未处理","指定人员未响应，已再次通知全体员工","请在聊天列表中打开“前台”，发起语音通话（Audio call）","我来处理","有访客找您","前台有访客","请通过语音通话（Audio call）联系前台","{who}未响应，请协助。"],
+ar:["استدعاء الزوار","يرجى اختيار الشخص الذي تزوره","لا أعرف / أي شخص","جارٍ الاتصال بـ: {who}","جميع الموظفين","{n}","اسم الشركة أو اسمك","رجوع","اتصال","تم استدعاء {who}.\nيرجى الانتظار هنا.","جارٍ الاستدعاء بالفعل.\nيرجى الانتظار قليلًا.","تعذّر الإرسال.\nيرجى طلب المساعدة من أحد الموظفين القريبين.","سيتولى {n} خدمتك.\nعند ورود المكالمة اضغط «رد».","عرض الموظفين","أدخل كلمة المرور للانتقال إلى عرض الموظفين","كلمة المرور غير صحيحة","إلغاء","موافق","استخدام كجهاز استقبال","التسجيل كموظف","مسجّل (يظهر على شاشة الاستقبال)","غير مسجّل (سجّل ليظهر في الاستقبال)","تسجيل","إلغاء التسجيل","سجل الزوار","لا توجد زيارات بعد","{t} زائر","(لك)","الزائر: {v}","{n} يتولى الأمر","للجميع","إلى {n}","دون رد","لم يرد الشخص المحدد، لذا أُرسل إشعار جديد للجميع","افتح محادثة «الاستقبال» من قائمة المحادثات وأجرِ مكالمة صوتية (Audio call)","سأتولى الأمر","هناك زائر ينتظرك","هناك زائر عند الاستقبال","اتصل بالاستقبال عبر مكالمة صوتية (Audio call)","{who} لم يرد. يرجى المساعدة."]
+};
+
+(function(){
+  var VERSION="2026.10.14-c", COOLDOWN_MS=10000, ESCALATE_MS=60000, KEEP=20, REQUIRE_NAME=false, LOG_TO_CHAT=true, DEFAULT_PASSWORD="secret", ORG="ja";
+  var calls={}, staff={}, lastPress=0, myCallId=null, pending=null, pwCb=null, lang=null;
+  var $=function(id){return document.getElementById(id)};
+  var selfAddr=webxdc.selfAddr, selfName=webxdc.selfName||"Staff";
+
+  function tr(l,k,v){var i=KEYS.indexOf(k);var s=(L[l]&&L[l][i])||L.en[i]||L.ja[i]||k;if(v)for(var x in v)s=s.split("{"+x+"}").join(v[x]);return s}
+  function t(k,v){return tr(lang,k,v)}
+  function adm(k){return (ADM[lang]||ADM.en)[k]||ADM.en[k]}
+  function store(k,v){try{if(v===undefined)return sessionStorage.getItem(k);sessionStorage.setItem(k,v)}catch(e){window.__s=window.__s||{};if(v===undefined)return window.__s[k]||null;window.__s[k]=v}}
+  function detect(){var n=(navigator.language||"").toLowerCase();if(n.indexOf("fil")===0||n.indexOf("tl")===0)return"fil";var p=n.slice(0,2);return L[p]?p:ORG}
+  function getMode(){return store("mode")||"staff"}
+  function setMode(m){if(m==="reception"&&staff[selfAddr])sendReg(false);store("mode",m);render()}
+  function getPw(){return store("pw")||DEFAULT_PASSWORD}
+  function langOf(a){return(staff[a]&&staff[a].lang)||ORG}
+
+  // 言語
+  var sel=$("lang");Object.keys(NAMES).forEach(function(c){var o=document.createElement("option");o.value=c;o.textContent=NAMES[c];sel.appendChild(o)});
+  function setLang(l){lang=l;store("lang",l);sel.value=l;applyLang()}
+  sel.onchange=function(){setLang(sel.value);closeForm();if(staff[selfAddr])sendReg(true)};
+  function applyLang(){
+    document.documentElement.lang=lang;document.documentElement.dir=(lang==="ar")?"rtl":"ltr";
+    var m={appTitle:"appTitle",pickTitle:"title",allBtn:"anyone",lb:"vlabel",backBtn:"back",goBtn:"call",regTitle:"reg",hist:"hist",pwCancel:"cancel",pwOk:"ok"};
+    for(var id in m)$(id).textContent=t(m[id]);
+    $("pwChange").textContent=adm("pwChange");buildChime();document.title=t("appTitle");render();
+  }
+
+  // 呼び鈴
+  var CHIMES={pingpong:[[988,0,.55],[784,.5,1.3]],double:[[988,0,.4],[784,.4,.5],[988,1.1,.4],[784,1.5,1.1]],chime:[[659,0,.6],[523,.5,.6],[587,1,.6],[392,1.5,1.4]],bell:[[1175,0,2.2]],soft:[[740,0,.6],[587,.55,1.4]],off:[]};
+  var actx=null;
+  function playChime(type,vol){
+    type=type||store("chtype")||"pingpong";if(type==="off")return;
+    vol=(vol===undefined)?parseFloat(store("chvol")||"0.6"):vol;
+    try{
+      var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+      actx=actx||new AC();if(actx.resume)actx.resume();
+      var now=actx.currentTime+0.02,master=actx.createGain();master.gain.value=Math.max(0,Math.min(1,vol));master.connect(actx.destination);
+      (CHIMES[type]||CHIMES.pingpong).forEach(function(n){
+        [[1,1],[2,.25],[3,.08]].forEach(function(h){
+          var o=actx.createOscillator(),g=actx.createGain(),t0=now+n[1];
+          o.type="sine";o.frequency.value=n[0]*h[0];
+          g.gain.setValueAtTime(0.0001,t0);g.gain.exponentialRampToValueAtTime(.45*h[1],t0+.01);g.gain.exponentialRampToValueAtTime(.0001,t0+n[2]);
+          o.connect(g);g.connect(master);o.start(t0);o.stop(t0+n[2]+.05);
+        });
+      });
+    }catch(e){}
+  }
+  function buildChime(){
+    var s=$("chType"),cur=store("chtype")||"pingpong";s.innerHTML="";
+    Object.keys(CHIMES).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=adm("ct_"+k);s.appendChild(o)});
+    s.value=cur;$("chVol").value=store("chvol")||"0.6";
+    $("chTitle").textContent=adm("chime");$("chTypeL").textContent=adm("chType");$("chVolL").textContent=adm("chVol");$("chTest").textContent="▶ "+adm("chTest");
+  }
+  $("chType").onchange=function(){store("chtype",$("chType").value);playChime()};
+  $("chVol").onchange=function(){store("chvol",$("chVol").value);playChime()};
+  $("chTest").onclick=function(){playChime($("chType").value,parseFloat($("chVol").value))};
+
+  // パスワード
+  function askPw(title,cb,noInput){$("pwTitle").textContent=title;$("pwIn").value="";$("pwIn").classList.toggle("hidden",!!noInput);$("pwErr").textContent="";$("pw").classList.remove("hidden");pwCb=cb;if(!noInput)$("pwIn").focus()}
+  function closePw(){$("pw").classList.add("hidden");pwCb=null}
+  $("pwCancel").onclick=closePw;
+  $("pwOk").onclick=function(){var cb=pwCb;if(!cb)return;var r=cb($("pwIn").value);if(r)$("pwErr").textContent=r;else if(pwCb===cb)closePw()};
+  $("pwIn").onkeydown=function(e){if(e.key==="Enter")$("pwOk").click()};
+  $("modeBtn").onclick=function(){
+    if(getMode()==="reception"){askPw(t("pwPrompt"),function(v){if(v!==getPw())return t("pwWrong");setMode("staff")});return}
+    askPw(adm("confirmRecep"),function(){setMode("reception")},true);
+  };
+  $("pwChange").onclick=function(){
+    $("pwNote").textContent="";
+    askPw(adm("pwCur"),function(v){
+      if(v!==getPw())return t("pwWrong");
+      askPw(adm("pwNew"),function(n){if(n.length<4)return adm("pwShort");store("pw",n);$("pwNote").textContent=adm("pwChanged")});
+    });
+  };
+
+  // 担当者登録
+  function sendReg(on){store("reg",on?"1":"0");webxdc.sendUpdate({payload:{type:"register",addr:selfAddr,name:selfName,lang:lang,on:on}},"register")}
+  $("regBtn").onclick=function(){sendReg(!staff[selfAddr])};
+
+  // 呼出し
+  function choose(to,toName){pending={to:to,toName:toName};$("toLabel").textContent=t("toWho",{who:to==="*"?t("allStaff"):t("person",{n:toName})});$("pick").classList.add("hidden");$("pickTitle").classList.add("hidden");$("form").classList.remove("hidden");$("vname").value="";$("msg").textContent="";$("vname").focus()}
+  function closeForm(){pending=null;$("form").classList.add("hidden");$("pick").classList.remove("hidden");$("pickTitle").classList.remove("hidden")}
+  $("backBtn").onclick=closeForm;
+  $("allBtn").onclick=function(){choose("*","")};
+  $("goBtn").onclick=function(){var v=$("vname").value.replace(/\s+/g," ").trim();if(REQUIRE_NAME&&!v){$("vname").focus();return}var p=pending;closeForm();callTo(p.to,p.toName,v)};
+  function showMsg(x,c){var m=$("msg");m.textContent=x;m.className=c||""}
+  function callTo(to,toName,visitor){
+    var now=Date.now();
+    if(now-lastPress<COOLDOWN_MS){showMsg(t("cooldown"),"done");return}
+    lastPress=now;visitor=visitor||"";
+    var id=now+"-"+Math.random().toString(36).slice(2,6), vtag=visitor?"【"+visitor+"】":"";
+    myCallId=id;
+    function msg(l){return"📞 "+tr(l,to==="*"?"nAll":"nYou")+vtag+" ("+tr(l,"nCall")+")"}
+    var notify={};
+    if(to==="*"){Object.keys(staff).forEach(function(a){if(a!==selfAddr)notify[a]=msg(langOf(a))});notify["*"]=msg(ORG)}
+    else notify[to]=msg(langOf(to));
+    var who=to==="*"?t("allStaff"):t("person",{n:toName});
+    try{
+      var up={payload:{type:"call",id:id,time:now,addr:selfAddr,to:to,toName:toName||"",visitor:visitor},notify:notify};
+      if(LOG_TO_CHAT)up.info="来客："+(visitor||"（名前の入力なし）")+" → "+(to==="*"?"全員宛":toName+"さん宛");
+      webxdc.sendUpdate(up,"call");
+      playChime();
+      showMsg(t("sent",{who:who}),"done");
+      if(to!=="*"){
+        setTimeout(function(){
+          var c=calls[id];if(c&&c.claimedBy)return;
+          var n2={};n2["*"]="📞 "+tr(ORG,"nAll")+vtag+" ("+tr(ORG,"nEsc",{who:tr(ORG,"person",{n:toName})})+")";
+          Object.keys(staff).forEach(function(a){if(a!==selfAddr)n2[a]="📞 "+tr(langOf(a),"nAll")+vtag+" ("+tr(langOf(a),"nEsc",{who:tr(langOf(a),"person",{n:toName})})+")"});
+          webxdc.sendUpdate({payload:{type:"escalate",id:id},info:LOG_TO_CHAT?"再通知："+toName+"さんが応答しないため、全員に通知しました":undefined,notify:n2},"escalate");
+        },ESCALATE_MS);
+      }
+    }catch(e){lastPress=0;showMsg(t("err"),"err")}
+  }
+  function claim(id){webxdc.sendUpdate({payload:{type:"claim",id:id,name:selfName},info:selfName+"さんが対応します"},"claim")}
+
+  var pr=webxdc.setUpdateListener(function(u){
+    var p=u.payload||{},c;
+    if(p.type==="register"){if(p.on)staff[p.addr]={addr:p.addr,name:p.name,lang:p.lang};else delete staff[p.addr]}
+    else if(p.type==="call"){c=calls[p.id]=calls[p.id]||{id:p.id,claimedBy:null};c.time=p.time;c.from=p.addr;c.to=p.to;c.toName=p.toName;c.visitor=p.visitor||""}
+    else if(p.type==="claim"){c=calls[p.id]=calls[p.id]||{id:p.id,claimedBy:null};if(!c.claimedBy)c.claimedBy=p.name;if(p.id===myCallId&&getMode()==="reception")showMsg(t("claimed",{n:c.claimedBy}),"done")}
+    else if(p.type==="escalate"){c=calls[p.id]=calls[p.id]||{id:p.id,claimedBy:null};c.escalated=true}
+    render();
+  },0);
+  // 登録が失われていたら自動で再登録（受信の取りこぼし対策）
+  function heal(){if(store("reg")==="1"&&getMode()==="staff"&&!staff[selfAddr])sendReg(true)}
+  if(pr&&pr.then)pr.then(heal);else setTimeout(heal,3000);
+
+  function hhmm(ms){if(!ms)return"--:--";var d=new Date(ms);return("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)}
+  function render(){
+    if(!lang)return;
+    var m=getMode();
+    $("reception").classList.toggle("hidden",m!=="reception");$("staff").classList.toggle("hidden",m!=="staff");
+    $("modeBtn").textContent=m==="reception"?t("toStaff"):t("toRecep");
+    $("ver").textContent="v"+VERSION;
+    if(m==="reception"){
+      var g=$("grid");g.innerHTML="";$("noStaff").textContent=adm("noStaff");$("noStaff").classList.toggle("hidden",Object.keys(staff).length>0);
+      Object.keys(staff).map(function(k){return staff[k]}).sort(function(a,b){return a.name<b.name?-1:1}).forEach(function(s){
+        var b=document.createElement("button");b.type="button";b.className="staffBtn";b.textContent=s.name;b.onclick=function(){choose(s.addr,s.name)};g.appendChild(b)});
+      return;
+    }
+    var reg=!!staff[selfAddr];
+    $("regState").textContent=reg?t("regOn"):t("regOff");$("regBtn").textContent=reg?t("regBtnOff"):t("regBtnOn");$("regBtn").className=reg?"off":"";
+    $("regList").textContent=adm("regList")+": "+(Object.keys(staff).map(function(k){return staff[k].name}).join(", ")||"-");
+    var arr=Object.keys(calls).map(function(k){return calls[k]}).sort(function(a,b){return(b.time||0)-(a.time||0)}).slice(0,KEEP);
+    var list=$("list");list.innerHTML="";
+    if(!arr.length){var e=document.createElement("div");e.className="empty";e.textContent=t("none");list.appendChild(e);return}
+    arr.forEach(function(c){
+      var mine=!c.claimedBy&&c.to===selfAddr;
+      var d=document.createElement("div");d.className="item"+(c.claimedBy?"":(mine?" mine":" open"));
+      var l=document.createElement("div"),tt=document.createElement("div"),s=document.createElement("div");
+      tt.className="t";tt.textContent=t("visit",{t:hhmm(c.time)})+(mine?" "+t("toYou"):"");l.appendChild(tt);
+      if(c.visitor){var v=document.createElement("div");v.className="v";v.textContent=t("visitor",{v:c.visitor});l.appendChild(v)}
+      s.className="s";
+      var tg=(c.to==="*"||!c.to)?t("forAll"):t("forP",{n:c.toName});
+      s.textContent=c.claimedBy?t("claimedBy",{n:c.claimedBy}):(tg+" · "+t("open")+(c.escalated?"\n"+t("esc"):""));
+      if(c.claimedBy===selfName)s.textContent+="\n"+t("hint");
+      l.appendChild(s);d.appendChild(l);
+      if(!c.claimedBy){var b=document.createElement("button");b.type="button";b.textContent=t("claim");b.onclick=function(){claim(c.id)};d.appendChild(b)}
+      list.appendChild(d);
+    });
+  }
+  setLang(store("lang")&&L[store("lang")]?store("lang"):detect());
+})();
+</script>
+</body>
+</html>
